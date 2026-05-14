@@ -4,6 +4,7 @@
 
 import { isAddress, getAddress } from 'ethers';
 import { OPENSEA_CHAIN_SLUG_MAP } from './chains.js';
+import { fetchContractCollection } from './drops.js';
 
 const OPENSEA_HOSTS = new Set(['opensea.io', 'www.opensea.io', 'pro.opensea.io']);
 
@@ -114,4 +115,17 @@ export async function resolveCollectionSlug(slug, apiKey) {
     contractAddress: getAddress(primary.address),
     chainHint: OPENSEA_CHAIN_SLUG_MAP[(primary.chain || '').toLowerCase()] || null,
   };
+}
+
+// Best-effort: given a (chainSlug, contractAddress), ask the OpenSea API for
+// the collection slug so we can call the Drops endpoints. Returns null when
+// the API isn't available or the contract isn't listed.
+export async function resolveSlugFromContract({ apiChainSlug, contractAddress, apiKey }) {
+  if (!apiKey || !apiChainSlug || !contractAddress) return null;
+  try {
+    const result = await fetchContractCollection(apiChainSlug, contractAddress, apiKey);
+    return result.collectionSlug;
+  } catch {
+    return null;
+  }
 }

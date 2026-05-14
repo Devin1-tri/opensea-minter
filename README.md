@@ -12,20 +12,27 @@ chains. Built with [ethers v6](https://docs.ethers.org/v6/) and
   `https://chainid.network/chains.json`).
 - Paste an OpenSea URL (`/assets/<chain>/<contract>/<id>`,
   `/item/<chain>/<contract>/<id>`, or `/collection/<slug>`) **or** a raw
-  contract address. Collection slugs are resolved through the OpenSea API when
-  `OPENSEA_API_KEY` is set.
+  contract address. The bot uses the OpenSea API to resolve a contract back to
+  its collection slug when `OPENSEA_API_KEY` is set.
+- **Drop stage + eligibility detection (OpenSea Drops API).** When the target
+  is an OpenSea-listed drop, the bot lists every stage (Public, Allowlist,
+  GTD, Presale, …) with its **price**, **start/end time**, **per-wallet cap**,
+  and **active/upcoming/ended** status. It then asks OpenSea to build a mint
+  transaction for the connected wallet — OpenSea picks the first eligible
+  stage automatically and the bot reports back which stage and price were
+  applied. If the wallet isn't on the allowlist or the wallet limit is reached,
+  OpenSea returns 422 and the bot tells you why instead of just reverting.
 - RPC defaults to a public endpoint for each chain. You can override per-run
   with a custom RPC (Alchemy, Infura, QuickNode, …) or via env vars
   (`ETHEREUM_RPC_URL`, `BASE_RPC_URL`, `ARBITRUM_RPC_URL`, `OPTIMISM_RPC_URL`).
 - Gas is tuned automatically: EIP-1559 chains get a buffered base-fee + tip,
   legacy chains get a buffered `gasPrice`.
-- The bot probes common mint signatures (`mint(uint256)`,
+- For non-drop contracts (or when no API key is set), the bot falls back to a
+  generic mint flow: it probes common signatures (`mint(uint256)`,
   `mint(address,uint256)`, `publicMint`, `mintPublic`, `claim`, `purchase`,
-  `mint()`) and uses the first one whose `estimateGas` succeeds, so it works
-  on most ERC-721/1155 drop contracts without per-collection ABI configuration.
-- Mint price per NFT is auto-detected from common public getters (`price`,
-  `mintPrice`, `MINT_PRICE`, `cost`, `PRICE`, `publicPrice`) and can be
-  overridden interactively.
+  `mint()`) and uses the first one whose `estimateGas` succeeds, reading
+  price from common getters (`price`, `mintPrice`, `MINT_PRICE`, `cost`,
+  `PRICE`, `publicPrice`) with an override prompt.
 
 ## Requirements
 
@@ -50,11 +57,17 @@ You'll be walked through:
    `Search Chainlist.org by name…` / `Enter a custom chain manually…`.
 2. **RPC selection** — keep the default, use the env-var override
    (e.g. `BASE_RPC_URL`), or paste a custom URL.
-3. **Target NFT** — an OpenSea URL or contract address.
-4. **Quantity & price** — auto-detected mint price, with an override prompt.
-5. **Gas review + confirmation** — the bot prints the mint value, max gas
+3. **Target NFT** — an OpenSea URL or contract address. With an API key the
+   bot resolves it to a collection slug and shows the drop's stages.
+4. **Stage / eligibility (drops only)** — the bot prints all stages with
+   prices and schedules, then asks OpenSea to build a mint transaction for
+   your wallet, which doubles as an eligibility check.
+5. **Quantity & price** — for drops, the price comes from OpenSea's response
+   (per the eligible stage). For non-drops, the bot auto-detects price from
+   common getters and lets you override.
+6. **Gas review + confirmation** — the bot prints the mint value, max gas
    cost, and total upper bound. Confirm to send.
-6. **On-chain confirmation** — the bot waits for the receipt and prints a
+7. **On-chain confirmation** — the bot waits for the receipt and prints a
    block explorer link.
 
 ## Configuration
@@ -86,13 +99,15 @@ OPENSEA_API_KEY=
 src/
   index.js       # CLI entry point — orchestrates the flow
   ui.js          # Inquirer prompts
-  chains.js     # Built-in chain definitions
-  chainlist.js  # Chainlist.org search + cache
-  opensea.js    # OpenSea URL / address parsing + slug resolution
-  gas.js        # Auto fee picker (EIP-1559 + legacy)
-  minter.js    # Mint function detection + dispatch
+  chains.js      # Built-in chain definitions + OpenSea chain id map
+  chainlist.js   # Chainlist.org search + cache
+  opensea.js     # OpenSea URL / address parsing + slug resolution
+  drops.js       # OpenSea Drops API client (stages + build mint tx)
+  gas.js         # Auto fee picker (EIP-1559 + legacy)
+  minter.js      # Generic mint function detection + dispatch
 test/
-  parser.test.js # Unit tests for the pure helpers
+  parser.test.js # Unit tests for OpenSea URL / price parsing
+  drops.test.js  # Unit tests for the Drops API client (fetch-stubbed)
 ```
 
 ## License

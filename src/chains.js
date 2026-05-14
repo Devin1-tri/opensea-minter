@@ -53,3 +53,25 @@ export const OPENSEA_CHAIN_SLUG_MAP = {
   arbitrum_nova: 'arbitrum',
   optimism: 'optimism',
 };
+
+// chainId -> OpenSea API chain slug (used for /api/v2/chain/{slug}/... endpoints).
+// Covers the chains where OpenSea Drops actually run.
+export const OPENSEA_API_CHAIN_BY_ID = {
+  1: 'ethereum',
+  10: 'optimism',
+  137: 'matic',
+  8453: 'base',
+  42161: 'arbitrum',
+  42170: 'arbitrum_nova',
+  43114: 'avalanche',
+  7777777: 'zora',
+  // Testnets
+  11155111: 'sepolia',
+  84532: 'base_sepolia',
+  421614: 'arbitrum_sepolia',
+  11155420: 'optimism_sepolia',
+};
+
+export function openseaApiChainSlug(chainId) {
+  return OPENSEA_API_CHAIN_BY_ID[chainId] || null;
+}

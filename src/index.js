@@ -30,7 +30,8 @@ import {
   resolveCollectionSlug,
   resolveSlugFromContract,
 } from './opensea.js';
-import { openseaApiChainSlug } from './chains.js';
+import { openseaApiChainSlug, BUILTIN_CHAINS } from './chains.js';
+import { describeChainMismatch } from './chain-check.js';
 import { pickAutoFees, feesToTxOverrides } from './gas.js';
 import {
   detectMintPriceWei,
@@ -102,6 +103,16 @@ async function main() {
   const parsed = parseOpenseaInput(targetInput);
   if (!parsed.ok) dieWith(parsed.error);
 
+  if (parsed.chainHint) {
+    const hintChainId = BUILTIN_CHAINS[parsed.chainHint]?.chainId;
+    if (hintChainId && hintChainId !== chain.chainId) {
+      dieWith(
+        `URL points to ${BUILTIN_CHAINS[parsed.chainHint].name} but you picked ` +
+          `${chain.name}. Re-run and pick the matching chain.`,
+      );
+    }
+  }
+
   const apiKey = process.env.OPENSEA_API_KEY || null;
   const apiChainSlug = openseaApiChainSlug(chain.chainId);
 
@@ -115,6 +126,8 @@ async function main() {
       const resolved = await resolveCollectionSlug(parsed.slug, apiKey);
       contractAddress = resolved.contractAddress;
       slugSpinner.succeed(`Resolved to contract ${contractAddress}.`);
+      const mismatch = describeChainMismatch(parsed.slug, resolved, chain);
+      if (mismatch) dieWith(mismatch);
     } catch (err) {
       slugSpinner.fail(err.message);
       process.exit(1);
@@ -219,12 +232,17 @@ async function tryDropsApiFlow({ chain, wallet, provider, slug, apiKey }) {
         `Wallet ${wallet.address} is not eligible to mint right now ` +
           `(probably not on the allowlist, or wallet limit reached).`,
       );
-    } else if (err.status === 409) {
-      buildSpinner.fail('Drop is not currently active for minting (not started / ended / paused).');
-    } else {
-      buildSpinner.fail(err.message);
+      return true; // confirmed-not-eligible — falling back to generic would just revert
     }
-    return true; // handled — don't fall back to generic
+    if (err.status === 409) {
+      buildSpinner.fail('Drop is not currently active for minting (not started / ended / paused).');
+      return true; // confirmed-inactive — same
+    }
+    buildSpinner.fail(
+      `${err.message}. The collection may not be a managed OpenSea drop ` +
+        '(or the API is temporarily failing). Falling back to generic on-chain mint…',
+    );
+    return false; // any other error: try the generic path
   }
   const valueWei = mintTx.value;
   const pricePerToken = quantity > 0 ? valueWei / BigInt(quantity) : 0n;

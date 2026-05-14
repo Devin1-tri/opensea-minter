@@ -1,0 +1,29 @@
+{
+  "name": "opensea-minter",
+  "version": "0.1.0",
+  "description": "Interactive CLI bot to mint NFTs on OpenSea-listed contracts across EVM chains with auto gas adjustment.",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "opensea-minter": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "lint": "eslint src",
+    "test": "node --test test/**/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.2",
+    "inquirer": "^10.2.2",
+    "ora": "^8.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.10.0"
+  },
+  "license": "MIT"
+}

@@ -32,7 +32,14 @@ chains. Built with [ethers v6](https://docs.ethers.org/v6/) and
   `mint(address,uint256)`, `publicMint`, `mintPublic`, `claim`, `purchase`,
   `mint()`) and uses the first one whose `estimateGas` succeeds, reading
   price from common getters (`price`, `mintPrice`, `MINT_PRICE`, `cost`,
-  `PRICE`, `publicPrice`) with an override prompt.
+  `PRICE`, `publicPrice`) with an override prompt. The Drops API path also
+  automatically falls back here when OpenSea returns an unexpected error
+  (e.g. 500) for the mint build — the collection may not actually be an
+  OpenSea-managed drop.
+- **Chain-mismatch guard.** When you paste a `/collection/<slug>` URL or an
+  `/assets/<chain>/.../...` URL that lives on a different chain than the one
+  you picked, the bot stops immediately with an actionable error instead of
+  trying to mint a Base contract on Ethereum (and so on).
 
 ## Requirements
 
@@ -105,9 +112,11 @@ src/
   drops.js       # OpenSea Drops API client (stages + build mint tx)
   gas.js         # Auto fee picker (EIP-1559 + legacy)
   minter.js      # Generic mint function detection + dispatch
+  chain-check.js # Chain-mismatch guard (pure helper)
 test/
-  parser.test.js # Unit tests for OpenSea URL / price parsing
-  drops.test.js  # Unit tests for the Drops API client (fetch-stubbed)
+  parser.test.js      # Unit tests for OpenSea URL / price parsing
+  drops.test.js       # Unit tests for the Drops API client (fetch-stubbed)
+  chain-check.test.js # Tests for the chain-mismatch guard + slug resolver
 ```
 
 ## License

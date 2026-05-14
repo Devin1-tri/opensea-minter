@@ -111,9 +111,11 @@ export async function resolveCollectionSlug(slug, apiKey) {
   if (!primary || !primary.address) {
     throw new Error(`OpenSea API did not return a primary contract for slug "${slug}".`);
   }
+  const rawChain = (primary.chain || '').toLowerCase();
   return {
     contractAddress: getAddress(primary.address),
-    chainHint: OPENSEA_CHAIN_SLUG_MAP[(primary.chain || '').toLowerCase()] || null,
+    chainHint: OPENSEA_CHAIN_SLUG_MAP[rawChain] || null,
+    openseaChain: rawChain || null,
   };
 }
 

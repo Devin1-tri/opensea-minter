@@ -44,6 +44,17 @@ test('describeChainMismatch flags a Base collection vs Ethereum target', () => {
   assert.match(result, /Re-run and pick the matching chain/);
 });
 
+test('describeChainMismatch maps OpenSea "matic" chain to built-in Polygon', () => {
+  // OpenSea returns chain="matic" for Polygon collections; the bot maps that
+  // to its 'polygon' key. Picking Polygon should match, picking anything else
+  // should flag a mismatch.
+  const resolved = { chainHint: 'polygon', openseaChain: 'matic' };
+  assert.equal(describeChainMismatch('p-drop', resolved, BUILTIN_CHAINS.polygon), null);
+  const mismatch = describeChainMismatch('p-drop', resolved, BUILTIN_CHAINS.base);
+  assert.match(mismatch, /Polygon/);
+  assert.match(mismatch, /Base/);
+});
+
 test('describeChainMismatch returns null when OpenSea chain is unknown to us', () => {
   // e.g. resolved to Zora but we don't have Zora in BUILTIN_CHAINS — let the
   // on-chain code path surface the real error rather than guessing.

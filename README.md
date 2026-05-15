@@ -6,7 +6,7 @@ chains. Built with [ethers v6](https://docs.ethers.org/v6/) and
 
 ## Features
 
-- Pick a chain from the built-in list (Ethereum, Base, Arbitrum, Optimism) or
+- Pick a chain from the built-in list (Ethereum, Base, Arbitrum, Optimism, Polygon) or
   add a custom one — either by entering the details manually, or by searching
   [chainlist.org](https://chainlist.org) (data fetched from
   `https://chainid.network/chains.json`).
@@ -24,7 +24,8 @@ chains. Built with [ethers v6](https://docs.ethers.org/v6/) and
   OpenSea returns 422 and the bot tells you why instead of just reverting.
 - RPC defaults to a public endpoint for each chain. You can override per-run
   with a custom RPC (Alchemy, Infura, QuickNode, …) or via env vars
-  (`ETHEREUM_RPC_URL`, `BASE_RPC_URL`, `ARBITRUM_RPC_URL`, `OPTIMISM_RPC_URL`).
+  (`ETHEREUM_RPC_URL`, `BASE_RPC_URL`, `ARBITRUM_RPC_URL`, `OPTIMISM_RPC_URL`,
+  `POLYGON_RPC_URL`).
 - Gas is tuned automatically: EIP-1559 chains get a buffered base-fee + tip,
   legacy chains get a buffered `gasPrice`.
 - For non-drop contracts (or when no API key is set), the bot falls back to a
@@ -60,7 +61,7 @@ npm start
 
 You'll be walked through:
 
-1. **Chain selection** — Ethereum / Base / Arbitrum / Optimism, or
+1. **Chain selection** — Ethereum / Base / Arbitrum / Optimism / Polygon, or
    `Search Chainlist.org by name…` / `Enter a custom chain manually…`.
 2. **RPC selection** — keep the default, use the env-var override
    (e.g. `BASE_RPC_URL`), or paste a custom URL.
@@ -88,6 +89,7 @@ ETHEREUM_RPC_URL=
 BASE_RPC_URL=
 ARBITRUM_RPC_URL=
 OPTIMISM_RPC_URL=
+POLYGON_RPC_URL=
 # Optional, only needed for /collection/<slug> URLs
 OPENSEA_API_KEY=
 ```

@@ -39,6 +39,15 @@ export const BUILTIN_CHAINS = {
     currency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
     rpcEnv: 'OPTIMISM_RPC_URL',
   },
+  polygon: {
+    key: 'polygon',
+    name: 'Polygon',
+    chainId: 137,
+    rpcUrl: 'https://polygon-rpc.com',
+    explorer: 'https://polygonscan.com',
+    currency: { name: 'Polygon Ecosystem Token', symbol: 'POL', decimals: 18 },
+    rpcEnv: 'POLYGON_RPC_URL',
+  },
 };
 
 export const BUILTIN_CHAIN_KEYS = Object.keys(BUILTIN_CHAINS);
@@ -52,6 +61,8 @@ export const OPENSEA_CHAIN_SLUG_MAP = {
   arbitrum: 'arbitrum',
   arbitrum_nova: 'arbitrum',
   optimism: 'optimism',
+  matic: 'polygon',
+  polygon: 'polygon',
 };
 
 // chainId -> OpenSea API chain slug (used for /api/v2/chain/{slug}/... endpoints).

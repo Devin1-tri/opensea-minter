@@ -16,3 +16,5 @@ coverage/
 .npm/
 .cache/
 chainlist-cache.json
+test-plan.md
+test-report.md

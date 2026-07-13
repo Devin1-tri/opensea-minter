@@ -48,6 +48,15 @@ export const BUILTIN_CHAINS = {
     currency: { name: 'Polygon Ecosystem Token', symbol: 'POL', decimals: 18 },
     rpcEnv: 'POLYGON_RPC_URL',
   },
+  robinhood: {
+    key: 'robinhood',
+    name: 'Robinhood Chain',
+    chainId: 4663,
+    rpcUrl: 'https://rpc.mainnet.chain.robinhood.com',
+    explorer: 'https://robinhoodchain.blockscout.com',
+    currency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpcEnv: 'ROBINHOOD_RPC_URL',
+  },
 };
 
 export const BUILTIN_CHAIN_KEYS = Object.keys(BUILTIN_CHAINS);
@@ -63,6 +72,7 @@ export const OPENSEA_CHAIN_SLUG_MAP = {
   optimism: 'optimism',
   matic: 'polygon',
   polygon: 'polygon',
+  robinhood: 'robinhood',
 };
 
 // chainId -> OpenSea API chain slug (used for /api/v2/chain/{slug}/... endpoints).
@@ -71,6 +81,7 @@ export const OPENSEA_API_CHAIN_BY_ID = {
   1: 'ethereum',
   10: 'optimism',
   137: 'matic',
+  4663: 'robinhood',
   8453: 'base',
   42161: 'arbitrum',
   42170: 'arbitrum_nova',

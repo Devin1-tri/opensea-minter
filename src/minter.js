@@ -39,6 +39,59 @@ export const MINT_CANDIDATES = [
     sig: 'function mint() payable',
     buildArgs: () => [],
   },
+  // Signature-based mint (e.g. AsciiCats on Robinhood, whitelist-signed mints).
+  // Requires a salt + signer signature. We generate a random salt and leave the
+  // signature empty — gas estimation will fail if the contract requires a valid
+  // signature, but this lets the user know the function exists so they can
+  // provide the signature interactively.
+  {
+    sig: 'function mint(bytes32 salt, bytes signature) payable',
+    buildArgs: () => {
+      const salt = '0x' + Array.from({ length: 64 }, () =>
+        '0123456789abcdef'[Math.floor(Math.random() * 16)],
+      ).join('');
+      return [salt, '0x'];
+    },
+    label: 'mint(bytes32,bytes) — signature-based',
+    needsSignature: true,
+  },
+  // Token-ID-specific mint (e.g. Rooster House — pick specific tokens).
+  // The generic bot can't know which IDs to pass, so we use an empty array.
+  // The caller can override via the interactive flow.
+  {
+    sig: 'function mint(address to, uint256[] tokenIds) payable',
+    buildArgs: ({ recipient }) => [recipient, []],
+    label: 'mint(address,uint256[]) — token-ID picker',
+    needsTokenIds: true,
+  },
+  // Allowlist mint with merkle proof (common pattern).
+  {
+    sig: 'function allowlistMint(uint256 quantity, bytes32[] proof) payable',
+    buildArgs: ({ quantity }) => [quantity, []],
+    label: 'allowlistMint(uint256,bytes32[]) — needs proof',
+    needsProof: true,
+  },
+  {
+    sig: 'function allowlistMint(bytes32[] proof, uint256 quantity) payable',
+    buildArgs: ({ quantity }) => [[], quantity],
+    label: 'allowlistMint(bytes32[],uint256) — needs proof',
+    needsProof: true,
+  },
+  {
+    sig: 'function claim(uint256 quantity, bytes32[] proof) payable',
+    buildArgs: ({ quantity }) => [quantity, []],
+    label: 'claim(uint256,bytes32[]) — needs proof',
+    needsProof: true,
+  },
+  // Safe-mint variants (ERC721).
+  {
+    sig: 'function safeMint(address to) payable',
+    buildArgs: ({ recipient }) => [recipient],
+  },
+  {
+    sig: 'function safeMint() payable',
+    buildArgs: () => [],
+  },
 ];
 
 // Common read-only getters that expose the per-unit mint price (in wei).
@@ -49,6 +102,9 @@ const PRICE_GETTERS = [
   'function cost() view returns (uint256)',
   'function PRICE() view returns (uint256)',
   'function publicPrice() view returns (uint256)',
+  'function pricePerMint() view returns (uint256)',
+  'function allowlistPrice() view returns (uint256)',
+  'function getPrice() view returns (uint256)',
 ];
 
 export async function detectMintPriceWei(provider, address) {
